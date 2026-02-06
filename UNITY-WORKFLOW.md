@@ -7,17 +7,22 @@
 ## Pipeline Overview
 
 ```
-HY-Motion → FBX Export → Blender Retargeting → Unity Humanoid
+HY-Motion (ComfyUI) → FBX Export → Blender Retargeting → Unity Humanoid
 ```
 
 ---
 
 ## 1. Generate Animations (HY-Motion)
 
+### Setup (8GB VRAM)
+
 1. Launch: `Launch-HYMotion.bat`
 2. Open: http://127.0.0.1:8188
-3. Load workflow from: `custom_nodes/ComfyUI-HY-Motion1/workflow/`
-4. Enter prompt and queue
+3. Load workflow: `custom_nodes/ComfyUI-HY-Motion1/workflows/workflow-gguf.json`
+4. **Critical settings:**
+   - `device_strategy: cpu` on LLM loader
+   - `model_name: HY-Motion-1.0-Lite` on Network loader
+5. Enter prompt → Queue Prompt
 
 ### Recommended Prompts
 
@@ -29,6 +34,12 @@ HY-Motion → FBX Export → Blender Retargeting → Unity Humanoid
 | **Walk** | `A person walking forward briskly` | 2s |
 | **Roll** | `A person doing a quick forward combat roll` | 1s |
 | **Jump** | `A person jumping up with arms raised` | 1s |
+
+### Output Location
+
+```
+ComfyUI_py311/output/hymotion_fbx/
+```
 
 ---
 
@@ -60,7 +71,7 @@ HY-Motion outputs SMPLX skeleton. To use with your own rig:
 
 ### Setup Humanoid Avatar
 
-1. Import FBX → Assets folder
+1. Drag FBX → Assets folder
 2. Select FBX → Inspector → **Rig** tab
 3. Animation Type: **Humanoid**
 4. Click **Configure** → verify green bones
@@ -79,7 +90,7 @@ HY-Motion outputs SMPLX skeleton. To use with your own rig:
 
 ```
 ┌─────────┐     ┌─────────┐     ┌─────────┐
-│  Idle   │◄───▶│   Run   │◄───▶│ Sprint  │
+│  Idle   │◄───►│   Run   │◄───►│ Sprint  │
 └────┬────┘     └────┬────┘     └────┬────┘
      │               │               │
      └───────┬───────┴───────┬───────┘
@@ -103,9 +114,11 @@ Use **Blend Trees** for smooth locomotion:
 
 ---
 
-## 📁 Output Structure
+## ❓ Common Issues
 
-```
-ComfyUI_py311/output/
-└── hymotion_fbx/     ← Generated animations
-```
+| Issue | Solution |
+|-------|----------|
+| FBX not recognized | Check Python 3.11, not 3.12+ |
+| Wrong scale | Scale 0.01 in Unity import settings |
+| T-pose issues | Verify bone mapping in Blender |
+| Slow generation | Normal for first run (~3 min), faster after |

@@ -13,20 +13,23 @@
 A complete setup for running [HY-Motion](https://github.com/Tencent-Hunyuan/HY-Motion) (Tencent's text-to-animation model) in ComfyUI with **FBX export for Unity/Blender**.
 
 Optimized for **8GB VRAM** GPUs using:
-- **HY-Motion-1.0-Lite** (~4GB VRAM)
-- **int4 quantization** for text encoder (~4GB VRAM)
+- **HY-Motion-1.0-Lite** motion model (~1.8GB)
+- **Qwen3-8B GGUF** text encoder (~5GB quantized)
+- **CPU offloading** for text encoder
 
 ---
 
-## 📋 Prerequisites
+## 📋 System Requirements
 
-| Requirement | Version | Why |
-|-------------|---------|-----|
-| **Miniconda** | Latest | [Download](https://docs.anaconda.com/miniconda/install/) |
-| **Python** | 3.11 | FBX SDK requires 3.11 (not 3.12+) |
-| **CUDA** | 12.4+ | GPU acceleration |
-| **GPU VRAM** | 8GB+ | Tested on RTX 3070 |
-| **Git** | Latest | Clone repositories |
+| Requirement | Minimum | Recommended |
+|-------------|---------|-------------|
+| **GPU VRAM** | 8GB | 8GB+ |
+| **System RAM** | 16GB | 32GB |
+| **Python** | 3.11 | 3.11 (required for FBX SDK) |
+| **CUDA** | 12.4+ | 12.4+ |
+| **Storage** | 20GB | 30GB+ |
+
+> ⚠️ **16GB RAM users:** Close other applications before running. The GGUF model needs ~10GB RAM when dequantizing.
 
 ---
 
@@ -61,17 +64,43 @@ cd ComfyUI-HY-Motion1
 pip install -r requirements.txt
 ```
 
-### Step 5: Download Model Weights
+### Step 5: Install GGUF Support
+```bash
+pip install gguf>=0.10.0
+```
 
-Download from HuggingFace and place in the correct folder:
+### Step 6: Download Model Weights
 
-| Model | Download | Place In |
-|-------|----------|----------|
-| **HY-Motion-1.0-Lite** | [Download](https://huggingface.co/tencent/HY-Motion-1.0/tree/main/HY-Motion-1.0-Lite) | `models/HY-Motion/ckpts/tencent/HY-Motion-1.0-Lite/` |
+Download from HuggingFace and place in the correct folders:
 
-Required files: `config.yml` (~1KB) and `latest.ckpt` (~1.8GB)
+| Model | Download | Place In | Size |
+|-------|----------|----------|------|
+| **HY-Motion-1.0-Lite** | [Download](https://huggingface.co/tencent/HY-Motion-1.0/tree/main/HY-Motion-1.0-Lite) | `models/HY-Motion/ckpts/tencent/HY-Motion-1.0-Lite/` | ~1.8GB |
+| **Qwen3-8B GGUF** | [Download](https://huggingface.co/Qwen/Qwen3-8B-GGUF) | `models/HY-Motion/ckpts/GGUF/` | ~5GB |
+| **Qwen3 Tokenizer** | [Download](https://huggingface.co/Qwen/Qwen3-8B) | `models/HY-Motion/ckpts/GGUF/` | ~15MB |
 
-### Step 6: Run ComfyUI
+**Required files for HY-Motion-1.0-Lite:**
+- `config.yml`
+- `latest.ckpt`
+
+**Required files for GGUF (in same folder):**
+- `Qwen3-8B-Q4_K_M.gguf` (or Q2_K for low RAM systems)
+- `tokenizer.json`
+- `tokenizer_config.json`
+- `vocab.json`
+- `merges.txt`
+
+### Step 7: Apply Plugin Fix (Required)
+
+The plugin has a bug with newer `huggingface_hub` versions. Edit `custom_nodes/ComfyUI-HY-Motion1/nodes.py`:
+
+Find and **comment out** these lines (around line 419 and 683):
+```python
+# "force_download": False,  # Commented: deprecated in newer huggingface_hub
+# "resume_download": False  # Commented: deprecated in newer huggingface_hub
+```
+
+### Step 8: Run ComfyUI
 ```bash
 # Windows
 Launch-HYMotion.bat
@@ -86,15 +115,50 @@ Open: **http://127.0.0.1:8188**
 
 ---
 
-## ⚙️ 8GB VRAM Settings
+## ⚙️ 8GB VRAM Configuration
+
+### Choose Your Text Encoder Approach
+
+| Approach | Download | RAM Needed | Best For |
+|----------|----------|------------|----------|
+| **GGUF (Recommended)** | ~5GB | 32GB+ | Large RAM systems |
+| **Full Model + int4** | ~16GB | 16GB | Lower RAM, Windows issues with BNB |
+
+---
+
+### Option A: GGUF Workflow (32GB+ RAM)
+
+Load workflow: `workflows/workflow-gguf.json`
 
 | Node | Setting | Value |
 |------|---------|-------|
-| **HYMotion Load LLM** | quantization | `int4` |
-| **HYMotion Load LLM** | offload_to_cpu | `True` |
-| **HYMotion Load Network** | model_name | `HY-Motion-1.0-Lite` |
+| **HY-Motion Load LLM (GGUF)** | gguf_file | `Qwen3-8B-Q4_K_M.gguf` |
+| **HY-Motion Load LLM (GGUF)** | device_strategy | `cpu` |
+| **HY-Motion Load Network** | model_name | `HY-Motion-1.0-Lite` |
+
+> ⚠️ GGUF dequantizes from 5GB → ~15GB during loading. Needs 32GB RAM.
 
 ---
+
+### Option B: Full Model + int4 (16GB RAM)
+
+Load workflow: `workflows/workflow.json` (standard)
+
+**Download full Qwen3-8B:** [HuggingFace](https://huggingface.co/Qwen/Qwen3-8B) (~16GB)
+
+Place in: `models/HY-Motion/ckpts/Qwen3-8B/`
+
+| Node | Setting | Value |
+|------|---------|-------|
+| **HY-Motion Load LLM** | model_name | `Qwen3-8B` |
+| **HY-Motion Load LLM** | quantization | `int4` |
+| **HY-Motion Load LLM** | offload_to_cpu | `True` |
+| **HY-Motion Load Network** | model_name | `HY-Motion-1.0-Lite` |
+
+> ℹ️ int4 keeps model compressed (~4GB). BitsAndBytes may have Windows DLL issues.
+
+---
+
 
 ## 📁 Folder Structure
 
@@ -105,10 +169,19 @@ Open: **http://127.0.0.1:8188**
 └── ComfyUI_py311/
     ├── custom_nodes/
     │   └── ComfyUI-HY-Motion1/
-    └── models/HY-Motion/ckpts/tencent/
-        └── HY-Motion-1.0-Lite/
-            ├── config.yml
-            └── latest.ckpt   # ~1.8GB (download separately)
+    │       └── workflows/
+    │           └── workflow-gguf.json  # Use this workflow!
+    └── models/HY-Motion/ckpts/
+        ├── tencent/
+        │   └── HY-Motion-1.0-Lite/
+        │       ├── config.yml
+        │       └── latest.ckpt
+        └── GGUF/
+            ├── Qwen3-8B-Q4_K_M.gguf
+            ├── tokenizer.json
+            ├── tokenizer_config.json
+            ├── vocab.json
+            └── merges.txt
 ```
 
 ---
@@ -124,13 +197,13 @@ A person jumping with arms raised
 
 ---
 
-## 📊 Performance
+## 📊 Performance (RTX 3070 8GB)
 
-| GPU | Model | First Run | Subsequent |
-|-----|-------|-----------|------------|
-| RTX 3070 8GB | Lite + int4 | ~90s | ~45-60s |
-| RTX 3060 Ti 8GB | Lite + int4 | ~100s | ~50-70s |
-| RTX 4060 8GB | Lite + int4 | ~70s | ~35-50s |
+| Phase | Time |
+|-------|------|
+| First load (GGUF dequantize) | ~2-3 min |
+| Subsequent prompts | ~45-90 sec |
+| Motion network only | ~30 sec |
 
 ---
 
@@ -138,11 +211,13 @@ A person jumping with arms raised
 
 | Error | Solution |
 |-------|----------|
-| `CUDA out of memory` | Set `offload_to_cpu: True`, use Lite model |
-| `Architecture not supported` | `pip install -U transformers` |
+| `resume_download` error | Apply plugin fix (Step 7) |
+| `CUDA out of memory` | Set `device_strategy: cpu` |
+| `Allocation on device` | Close other apps, need 10GB+ RAM free |
+| `Tokenizer not found` | Download tokenizer files to GGUF folder |
+| `gguf not installed` | Run `pip install gguf>=0.10.0` |
 | `FBX export fails` | Verify Python 3.11 (not 3.12/3.13) |
-| `Module not found` | Re-run `pip install -r requirements.txt` |
-| `bitsandbytes CUDA failed` | Use `int4` quantization |
+| Yellow "Error loading model" | Restart ComfyUI after downloading models |
 
 ---
 
@@ -150,7 +225,6 @@ A person jumping with arms raised
 
 - [HY-Motion](https://github.com/Tencent-Hunyuan/HY-Motion) by Tencent Hunyuan Team
 - [ComfyUI-HY-Motion1](https://github.com/jtydhr88/ComfyUI-HY-Motion1) by jtydhr88
-- [top3d.ai Guide](https://www.top3d.ai/learn/text-to-animation-hy-motion)
 - [ComfyUI](https://github.com/comfyanonymous/ComfyUI)
 
 ---
