@@ -10,7 +10,7 @@
 
 ## 🚀 What This Is
 
-A complete, pre-configured setup for running [HY-Motion](https://github.com/Tencent-Hunyuan/HY-Motion) (Tencent's text-to-animation model) in ComfyUI with **FBX export for Unity/Blender**.
+A complete setup for running [HY-Motion](https://github.com/Tencent-Hunyuan/HY-Motion) (Tencent's text-to-animation model) in ComfyUI with **FBX export for Unity/Blender**.
 
 Optimized for **8GB VRAM** GPUs using:
 - **HY-Motion-1.0-Lite** (~4GB VRAM)
@@ -22,41 +22,38 @@ Optimized for **8GB VRAM** GPUs using:
 
 | Requirement | Version | Why |
 |-------------|---------|-----|
-| **Miniconda** | Latest | Python environment isolation |
-| **Python** | 3.11 | FBX SDK requires Python 3.11 (not 3.12+) |
+| **Miniconda** | Latest | [Download](https://docs.anaconda.com/miniconda/install/) |
+| **Python** | 3.11 | FBX SDK requires 3.11 (not 3.12+) |
 | **CUDA** | 12.4+ | GPU acceleration |
 | **GPU VRAM** | 8GB+ | Tested on RTX 3070 |
 | **Git** | Latest | Clone repositories |
 
 ---
 
-## ⚡ Quick Start
+## ⚡ Installation
 
-### 1. Clone This Repository
-```bash
-git clone https://github.com/YOUR_USERNAME/HY-Motion-8GB-Setup.git
-cd HY-Motion-8GB-Setup
-```
-
-### 2. Create Conda Environment
+### Step 1: Create Conda Environment
 ```bash
 conda create -n comfy311 python=3.11 -y
 conda activate comfy311
 ```
 
-### 3. Clone ComfyUI (if not included)
+### Step 2: Clone ComfyUI
 ```bash
 git clone https://github.com/comfyanonymous/ComfyUI.git ComfyUI_py311
 cd ComfyUI_py311
 ```
 
-### 4. Install PyTorch with CUDA
+### Step 3: Install PyTorch with CUDA
+
+> ⚠️ **Critical:** Don't skip `--index-url` or you'll get CPU-only PyTorch!
+
 ```bash
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 pip install -r requirements.txt
 ```
 
-### 5. Install HY-Motion Plugin
+### Step 4: Install HY-Motion Plugin
 ```bash
 cd custom_nodes
 git clone https://github.com/jtydhr88/ComfyUI-HY-Motion1
@@ -64,19 +61,17 @@ cd ComfyUI-HY-Motion1
 pip install -r requirements.txt
 ```
 
-### 6. Download Model Weights (Manual Step)
+### Step 5: Download Model Weights
 
 Download from HuggingFace and place in the correct folder:
 
-| Model | Download Link | Place In |
-|-------|---------------|----------|
-| **HY-Motion-1.0-Lite** | [Download](https://huggingface.co/tencent/HY-Motion-1.0-Lite) | `models/HY-Motion/ckpts/tencent/HY-Motion-1.0-Lite/` |
+| Model | Download | Place In |
+|-------|----------|----------|
+| **HY-Motion-1.0-Lite** | [Download](https://huggingface.co/tencent/HY-Motion-1.0/tree/main/HY-Motion-1.0-Lite) | `models/HY-Motion/ckpts/tencent/HY-Motion-1.0-Lite/` |
 
-Required files:
-- `config.yml` (~1KB)
-- `latest.ckpt` (~1.8GB)
+Required files: `config.yml` (~1KB) and `latest.ckpt` (~1.8GB)
 
-### 7. Run ComfyUI
+### Step 6: Run ComfyUI
 ```bash
 # Windows
 Launch-HYMotion.bat
@@ -91,9 +86,7 @@ Open: **http://127.0.0.1:8188**
 
 ---
 
-## ⚙️ 8GB VRAM Configuration
-
-In ComfyUI, use these settings:
+## ⚙️ 8GB VRAM Settings
 
 | Node | Setting | Value |
 |------|---------|-------|
@@ -106,22 +99,16 @@ In ComfyUI, use these settings:
 ## 📁 Folder Structure
 
 ```
-HY-Motion-8GB-Setup/
-├── README.md                    # This file
-├── Launch-HYMotion.bat          # Windows launcher
-├── HY-Motion-Setup-Guide.md     # Detailed setup instructions
-├── SETUP-VERIFICATION.md        # Verification checklist
-├── Animation-Pipeline-Guide.md  # Unity animation workflow
-└── ComfyUI_py311/               # ComfyUI installation
+├── README.md                 # This file
+├── UNITY-WORKFLOW.md         # Animation to Unity pipeline
+├── Launch-HYMotion.bat       # Windows launcher
+└── ComfyUI_py311/
     ├── custom_nodes/
-    │   └── ComfyUI-HY-Motion1/  # HY-Motion plugin
-    └── models/
-        └── HY-Motion/
-            └── ckpts/
-                └── tencent/
-                    └── HY-Motion-1.0-Lite/  # ← Put model here
-                        ├── config.yml
-                        └── latest.ckpt      # ~1.8GB (not in repo)
+    │   └── ComfyUI-HY-Motion1/
+    └── models/HY-Motion/ckpts/tencent/
+        └── HY-Motion-1.0-Lite/
+            ├── config.yml
+            └── latest.ckpt   # ~1.8GB (download separately)
 ```
 
 ---
@@ -133,33 +120,17 @@ A person walking forward confidently
 A person sprinting at full speed, arms pumping
 A person doing a combat roll
 A person jumping with arms raised
-A person waving hello
 ```
 
 ---
 
 ## 📊 Performance
 
-| GPU | Model | Text Encoder | Animation Time |
-|-----|-------|--------------|----------------|
-| RTX 3070 8GB | Lite | int4 | ~45-60s for 4s animation |
-| RTX 3060 Ti 8GB | Lite | int4 | ~50-70s for 4s animation |
-| RTX 4060 8GB | Lite | int4 | ~35-50s for 4s animation |
-
----
-
-## 🔗 Credits & Resources
-
-- [HY-Motion](https://github.com/Tencent-Hunyuan/HY-Motion) by Tencent Hunyuan Team
-- [ComfyUI-HY-Motion1](https://github.com/jtydhr88/ComfyUI-HY-Motion1) plugin by jtydhr88
-- [top3d.ai Guide](https://www.top3d.ai/learn/text-to-animation-hy-motion) for the original tutorial
-- [ComfyUI](https://github.com/comfyanonymous/ComfyUI)
-
----
-
-## 📄 License
-
-MIT License - See [LICENSE](LICENSE) for details.
+| GPU | Model | First Run | Subsequent |
+|-----|-------|-----------|------------|
+| RTX 3070 8GB | Lite + int4 | ~90s | ~45-60s |
+| RTX 3060 Ti 8GB | Lite + int4 | ~100s | ~50-70s |
+| RTX 4060 8GB | Lite + int4 | ~70s | ~35-50s |
 
 ---
 
@@ -167,7 +138,23 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 | Error | Solution |
 |-------|----------|
-| `CUDA out of memory` | Enable `offload_to_cpu: True`, use Lite model |
-| `Architecture not supported` | Run `pip install -U transformers` |
+| `CUDA out of memory` | Set `offload_to_cpu: True`, use Lite model |
+| `Architecture not supported` | `pip install -U transformers` |
 | `FBX export fails` | Verify Python 3.11 (not 3.12/3.13) |
-| `Module not found` | Run `pip install -r requirements.txt` again |
+| `Module not found` | Re-run `pip install -r requirements.txt` |
+| `bitsandbytes CUDA failed` | Use `int4` quantization |
+
+---
+
+## 🔗 Credits
+
+- [HY-Motion](https://github.com/Tencent-Hunyuan/HY-Motion) by Tencent Hunyuan Team
+- [ComfyUI-HY-Motion1](https://github.com/jtydhr88/ComfyUI-HY-Motion1) by jtydhr88
+- [top3d.ai Guide](https://www.top3d.ai/learn/text-to-animation-hy-motion)
+- [ComfyUI](https://github.com/comfyanonymous/ComfyUI)
+
+---
+
+## 📄 License
+
+MIT License - See [LICENSE](LICENSE)
