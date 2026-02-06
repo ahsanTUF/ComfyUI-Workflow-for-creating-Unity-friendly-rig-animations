@@ -1,0 +1,44 @@
+# ================================
+# HY-Motion ComfyUI - .gitattributes
+# ================================
+
+# Auto-detect text files and normalize line endings
+* text=auto
+
+# Markdown files - always LF
+*.md text eol=lf
+
+# Batch scripts - always CRLF for Windows
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Shell scripts - always LF
+*.sh text eol=lf
+
+# Python - always LF
+*.py text eol=lf
+
+# YAML/JSON config files
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+
+# Denote binary files that should not be modified
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+
+# Model files (binary, excluded via .gitignore but marking anyway)
+*.ckpt binary
+*.safetensors binary
+*.bin binary
+*.pt binary
+*.pth binary
+*.gguf binary
+*.onnx binary
+
+# Export diffs as text for easy reviewing
+*.md diff=markdown

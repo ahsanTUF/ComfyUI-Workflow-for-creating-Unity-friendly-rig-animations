@@ -1,0 +1,85 @@
+# ================================
+# HY-Motion ComfyUI - .gitignore
+# For 8GB VRAM GPU Setup
+# ================================
+
+# === Large Model Files (Download Separately) ===
+# These are too large for GitHub (>100MB limit)
+*.ckpt
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.gguf
+*.onnx
+
+# === ComfyUI Generated Content ===
+ComfyUI_py311/output/
+ComfyUI_py311/input/
+ComfyUI_py311/temp/
+ComfyUI_py311/user/
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# === Virtual Environments ===
+venv/
+ENV/
+env/
+.venv/
+
+# === IDE ===
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# === OS Files ===
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# === Logs ===
+*.log
+logs/
+pip-log.txt
+
+# === Conda ===
+*.conda
+conda-meta/
+
+# === Git LFS (if used) ===
+# Uncomment if you use Git LFS for large files
+# *.ckpt filter=lfs diff=lfs merge=lfs -text
+
+# === Keep Empty Directories ===
+# Git doesn't track empty directories, but we use .gitkeep
+!.gitkeep
